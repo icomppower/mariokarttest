@@ -1,0 +1,8 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.tmp/
+__pycache__/
+*.blend1
+*.pyc

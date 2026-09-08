@@ -1,0 +1,23 @@
+{
+  "name": "dusk-circuit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dusk Circuit - a kart racer where Blender is the content pipeline",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "smoke": "playwright test",
+    "serve": "node tools/serve.js",
+    "verify": "./verify.sh"
+  },
+  "dependencies": {
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "js-yaml": "4.1.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
