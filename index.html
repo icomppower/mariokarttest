@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dusk Circuit</title>
+  <style>
+    :root { color-scheme: dark; --ink: #f3e9dc; --amber: #ff9a3c; --dusk: #2a1b3d; }
+    html, body { margin: 0; height: 100%; background: #1a1230; overflow: hidden; font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); }
+    #app { position: fixed; inset: 0; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #hud { position: fixed; inset: 0; pointer-events: none; }
+    .panel { position: absolute; padding: 10px 14px; background: rgba(20, 12, 36, 0.55); border: 1px solid rgba(255, 154, 60, 0.35); border-radius: 10px; backdrop-filter: blur(4px); font-variant-numeric: tabular-nums; }
+    #lapPanel { top: 16px; left: 16px; font-size: 20px; line-height: 1.3; }
+    #lapPanel b { color: var(--amber); }
+    #speedPanel { bottom: 16px; right: 16px; text-align: right; }
+    #speed { font-size: 40px; font-weight: 700; line-height: 1; }
+    #speedPanel small { opacity: 0.7; letter-spacing: 0.1em; }
+    #posPanel { top: 16px; right: 16px; font-size: 22px; }
+    #pos { font-size: 34px; font-weight: 700; color: var(--amber); }
+    #countdown { position: absolute; inset: 0; display: grid; place-items: center; font-size: 140px; font-weight: 800; color: var(--amber); text-shadow: 0 6px 30px rgba(0,0,0,0.6); }
+    #message { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); font-size: 34px; font-weight: 700; text-shadow: 0 3px 18px rgba(0,0,0,0.7); }
+    #results { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); min-width: 320px; font-size: 20px; }
+    #results h2 { margin: 0 0 10px; color: var(--amber); }
+    #results table { width: 100%; border-collapse: collapse; }
+    #results td { padding: 4px 8px; }
+    #results tr.me td { color: var(--amber); font-weight: 700; }
+    #help { bottom: 16px; left: 16px; font-size: 13px; opacity: 0.75; }
+    #loading { position: absolute; inset: 0; display: grid; place-items: center; background: #1a1230; font-size: 22px; letter-spacing: 0.08em; }
+    #error { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(60, 10, 20, 0.92); font-size: 18px; padding: 24px; white-space: pre-wrap; pointer-events: auto; }
+    [hidden] { display: none !important; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./node_modules/three/build/three.module.js",
+        "three/addons/": "./node_modules/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="hud">
+    <div id="lapPanel" class="panel">LAP <b id="lap">–</b><br /><span id="time">0:00.00</span></div>
+    <div id="posPanel" class="panel"><span id="pos">–</span><br /><small id="posLabel">POSITION</small></div>
+    <div id="speedPanel" class="panel"><div id="speed">0</div><small>KM/H</small></div>
+    <div id="help" class="panel">↑/W throttle · ↓/S brake · ←/→ steer · R restart</div>
+    <div id="countdown" hidden></div>
+    <div id="message" hidden></div>
+    <div id="results" class="panel" hidden></div>
+    <div id="loading">LOADING DUSK CIRCUIT…</div>
+    <div id="error" hidden></div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

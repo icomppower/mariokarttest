@@ -68,8 +68,9 @@ export class Race {
     const st = t.start;
     const fx = Math.sin(st.heading), fz = Math.cos(st.heading);
     const lx = fz, lz = -fx; // left normal
-    const row = Math.floor(i / 2);
-    const col = i % 2 === 0 ? 1 : -1;
+    const slot = this.kartCount - 1 - i; // kart 0 (the player) starts at the back
+    const row = Math.floor(slot / 2);
+    const col = slot % 2 === 0 ? 1 : -1;
     const back = 6 + row * 6.5;
     const side = col * 2.6;
     const x = st.x - fx * back + lx * side;
