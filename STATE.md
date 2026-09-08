@@ -86,7 +86,26 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   Negative: the same file with the `deploy-pages` step removed is rejected by name.
 - Playwright smoke passes against `dist/` served statically (this is what
   caught a missing transitive addon file, `SkeletonUtils.js`, on the first try).
-- Live-URL smoke is Johnny's after merge.
+- **Live deploy attempt.** Mid-session Johnny asked for a live link, so
+  `main` was created from the branch tip (commit `5f06ab6`) and the workflow
+  ran: run #1 passed `npm ci`, 15 sim/track tests, `validate_glb`, and the
+  dist assembly, then **failed at `actions/configure-pages`** with
+  `Create Pages site failed: Resource not accessible by integration` — the
+  workflow token cannot create the Pages site. One-time fix, repo owner only:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**, then
+  re-run the workflow (or push to `main`). Expected URL:
+  https://icomppower.github.io/mariokarttest/
+- **Live link now:** the single-file build from `tools/build_artifact.mjs`
+  (same modules concatenated, `.glb`s inlined as base64, three.js from
+  jsdelivr) is published as a Claude artifact:
+  https://claude.ai/code/artifact/fabf32c8-0920-487b-a86b-3a4578c04351
+  The concatenated bundle was smoked headlessly with a local copy of three
+  (91 km/h, no page errors); the CDN itself is unreachable from this
+  container, so the CDN path is verified only by the artifact opening in a
+  browser.
+- Because `main` already carries G0–G4, the PR from this branch holds only
+  the follow-up commit (standalone builder + this STATE update); the gate
+  evidence is in its description.
 
 ## Not real / caveats
 
