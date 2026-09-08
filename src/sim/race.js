@@ -70,8 +70,8 @@ export class Race {
     const lx = fz, lz = -fx; // left normal
     const row = Math.floor(i / 2);
     const col = i % 2 === 0 ? 1 : -1;
-    const back = 5 + row * 4.5;
-    const side = col * 2.3;
+    const back = 6 + row * 6.5;
+    const side = col * 2.6;
     const x = st.x - fx * back + lx * side;
     const z = st.z - fz * back + lz * side;
     const gy = t.groundY(x, z, st.y + 5);
@@ -233,9 +233,20 @@ export class Race {
         a.z -= nz * push;
         b.x += nx * push;
         b.z += nz * push;
-        // Faster kart loses a bit more; both shed some speed.
-        a.speed *= 0.92;
-        b.speed *= 0.92;
+        // Exchange momentum along the contact normal (equal masses, partly
+        // inelastic), then fold each kart's new velocity back onto its heading.
+        const afx = Math.sin(a.heading), afz = Math.cos(a.heading);
+        const bfx = Math.sin(b.heading), bfz = Math.cos(b.heading);
+        const van = (afx * nx + afz * nz) * a.speed;
+        const vbn = (bfx * nx + bfz * nz) * b.speed;
+        if (van - vbn > 0) {
+          const e = 0.35;
+          const van2 = ((1 - e) * van + (1 + e) * vbn) / 2;
+          const vbn2 = ((1 + e) * van + (1 - e) * vbn) / 2;
+          const da = van2 - van, db = vbn2 - vbn;
+          a.speed += da * (afx * nx + afz * nz);
+          b.speed += db * (bfx * nx + bfz * nz);
+        }
       }
     }
   }
@@ -283,6 +294,7 @@ export class Race {
     // A kart moves well under a metre per tick; a bigger jump is a teleport
     // (tests) or a projection glitch and must not count as progress.
     if (Math.abs(ds) < 25) k.dist += ds;
+    if (k.finished) return; // keep dist/rank consistent, but no more laps
     const newLap = Math.max(0, Math.floor(k.dist / L));
     while (newLap > k.lap) {
       k.lap++;

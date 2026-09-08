@@ -43,7 +43,23 @@ export function aiInput(race, kart, profile) {
   const tz = t.z + t.nz * lat;
   const desired = Math.atan2(tx - kart.x, tz - kart.z);
   const diff = wrapAngle(desired - kart.heading);
-  const steer = clamp(diff * p.gain, -1, 1);
+  let steer = clamp(diff * p.gain, -1, 1);
+
+  // Kart directly ahead and slower: lift and move over rather than ram it.
+  const fx = Math.sin(kart.heading), fz = Math.cos(kart.heading);
+  let blocked = 0;
+  let blockSide = 0;
+  for (const o of race.karts) {
+    if (o === kart) continue;
+    const rx = o.x - kart.x, rz = o.z - kart.z;
+    const ahead = rx * fx + rz * fz;
+    const side = rx * fz - rz * fx; // positive = to the left
+    if (ahead > 0 && ahead < 5 + kart.speed * 0.25 && Math.abs(side) < 2.4 && o.speed < kart.speed + 2) {
+      blocked = Math.max(blocked, 1 - ahead / (5 + kart.speed * 0.25));
+      blockSide = side;
+    }
+  }
+  if (blocked > 0) steer = clamp(steer + (blockSide > 0 ? -0.5 : 0.5) * blocked, -1, 1);
 
   // Throttle: ease off for upcoming curvature and when pointing away from the line.
   const k1 = Math.abs(track.curvatureAt(kart.s + 12));
@@ -52,5 +68,6 @@ export function aiInput(race, kart, profile) {
   let throttle = p.pace - clamp(k * 22 * p.caution * (kart.speed / 20), 0, 0.7);
   if (Math.abs(diff) > 1.2) throttle = Math.min(throttle, 0.35);
   if (Math.abs(diff) > 0.6 && kart.speed > 18) throttle = Math.min(throttle, 0.1);
+  if (blocked > 0.5) throttle = Math.min(throttle, 0.4);
   return { throttle: clamp(throttle, -1, 1), steer };
 }
