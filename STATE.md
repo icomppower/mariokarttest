@@ -107,6 +107,32 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   the follow-up commit (standalone builder + this STATE update); the gate
   evidence is in its description.
 
+## Re-verification (2026-09-10, fresh container, same session resumed)
+
+- `./verify.sh` (full, with bpy) ran **ALL GATES GREEN** end to end on a fresh
+  container at commit `2168071`: `npm ci`, 15 node tests, `validate_glb`,
+  G3a byte-identical re-export of all 12 `.glb`, G3b/G3c negatives, workflow
+  dry run + negative, Playwright smoke (4 tests, source) and smoke (dist).
+- Preflight repeated: `CLAUDE_CODE_ENVIRONMENT_NAME` still unset
+  (`cloud_default`); `pip install bpy` → 5.0.1 imports; `npx playwright
+  install chromium` is denied by the egress proxy for host
+  **`cdn.playwright.dev`** (HTTP 403). The pre-installed Chromium 1194 at
+  `/opt/pw-browsers` is what Playwright 1.56.1 uses, so G2 still runs.
+- Pages status unchanged: workflow run #2 on `main` (a manual
+  `workflow_dispatch` by the repo owner on 2026-09-08) passed every build
+  step and failed at `actions/configure-pages` with the same
+  `Create Pages site failed: Resource not accessible by integration`.
+  The repository API reports `has_pages: false`, `visibility: public`
+  (public, so Pages needs no paid plan). The one-time fix is unchanged:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+  `https://icomppower.github.io` is unreachable from this container
+  (egress policy), so the live URL cannot be probed from here either way.
+- Repository fact worth knowing: the **default branch is
+  `claude/dusk-circuit-blender-pipeline-skrptb`**, not `main` (the repo was
+  empty and this branch was its first push). The Pages workflow triggers on
+  pushes to `main`, so after merging PR #1 consider Settings → General →
+  Default branch → `main`.
+
 ## Not real / caveats
 
 - No hand-modelled polish: all `.blend`s come from `tools/build_assets.py`
@@ -115,4 +141,5 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   editing it does not re-sweep `TRACK_SURFACE`/`TRACK_CENTERLINE` (see TODO).
 - The p95 gate is measured on the reduced fixture described above, not at
   full resolution with shadows.
-- `CLAUDE_CODE_ENVIRONMENT_NAME` was unset (see Preflight).
+- `CLAUDE_CODE_ENVIRONMENT_NAME` was unset (see Preflight), on both sessions.
+- Live GitHub Pages URL: not yet real (site not enabled; see Re-verification).
