@@ -11,6 +11,14 @@ const KART_LENGTH = 2.4;
 const loader = new GLTFLoader();
 
 async function fetchBytes(url) {
+  // Standalone single-file build (tools/build_artifact.mjs) inlines assets as base64.
+  const inline = globalThis.__DUSK_INLINE_ASSETS;
+  if (inline && inline[url]) {
+    const bin = atob(inline[url]);
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out.buffer;
+  }
   const res = await fetch(url);
   if (!res.ok) throw new Error(`failed to fetch ${url}: HTTP ${res.status}`);
   return res.arrayBuffer();

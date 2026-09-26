@@ -86,7 +86,87 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   Negative: the same file with the `deploy-pages` step removed is rejected by name.
 - Playwright smoke passes against `dist/` served statically (this is what
   caught a missing transitive addon file, `SkeletonUtils.js`, on the first try).
-- Live-URL smoke is Johnny's after merge.
+- **Live deploy attempt.** Mid-session Johnny asked for a live link, so
+  `main` was created from the branch tip (commit `5f06ab6`) and the workflow
+  ran: run #1 passed `npm ci`, 15 sim/track tests, `validate_glb`, and the
+  dist assembly, then **failed at `actions/configure-pages`** with
+  `Create Pages site failed: Resource not accessible by integration` — the
+  workflow token cannot create the Pages site. One-time fix, repo owner only:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**, then
+  re-run the workflow (or push to `main`). Expected URL:
+  https://icomppower.github.io/mariokarttest/
+- **Live link now:** the single-file build from `tools/build_artifact.mjs`
+  (same modules concatenated, `.glb`s inlined as base64, three.js from
+  jsdelivr) is published as a Claude artifact:
+  https://claude.ai/code/artifact/fabf32c8-0920-487b-a86b-3a4578c04351
+  The concatenated bundle was smoked headlessly with a local copy of three
+  (91 km/h, no page errors); the CDN itself is unreachable from this
+  container, so the CDN path is verified only by the artifact opening in a
+  browser.
+- Because `main` already carries G0–G4, the PR from this branch holds only
+  the follow-up commit (standalone builder + this STATE update); the gate
+  evidence is in its description.
+
+## Re-verification (2026-09-10, fresh container, same session resumed)
+
+- `./verify.sh` (full, with bpy) ran **ALL GATES GREEN** end to end on a fresh
+  container at commit `2168071`: `npm ci`, 15 node tests, `validate_glb`,
+  G3a byte-identical re-export of all 12 `.glb`, G3b/G3c negatives, workflow
+  dry run + negative, Playwright smoke (4 tests, source) and smoke (dist).
+- Preflight repeated: `CLAUDE_CODE_ENVIRONMENT_NAME` still unset
+  (`cloud_default`); `pip install bpy` → 5.0.1 imports; `npx playwright
+  install chromium` is denied by the egress proxy for host
+  **`cdn.playwright.dev`** (HTTP 403). The pre-installed Chromium 1194 at
+  `/opt/pw-browsers` is what Playwright 1.56.1 uses, so G2 still runs.
+- Pages status unchanged: workflow run #2 on `main` (a manual
+  `workflow_dispatch` by the repo owner on 2026-09-08) passed every build
+  step and failed at `actions/configure-pages` with the same
+  `Create Pages site failed: Resource not accessible by integration`.
+  The repository API reports `has_pages: false`, `visibility: public`
+  (public, so Pages needs no paid plan). The one-time fix is unchanged:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+  `https://icomppower.github.io` is unreachable from this container
+  (egress policy), so the live URL cannot be probed from here either way.
+## Double-check (2026-09-26, fresh container)
+
+- `./verify.sh` re-run after deleting `node_modules/`, `dist/`, `test-results/`
+  and `.tmp/`: **ALL GATES GREEN** at commit `4874062` (same 15 node tests,
+  12 byte-identical `.glb`, both G3 negatives, workflow dry run + negative,
+  Playwright 4 + 1).
+- The repo now reports `has_pages: true` (Pages was enabled in Settings after
+  2026-09-10), but no workflow had run since, so the Pages workflow was
+  dispatched again on `main` (run #3). **The build job passed end to end,
+  including `configure-pages` and `upload-pages-artifact`.** The `deploy`
+  job was rejected before any step ran; GitHub's annotation on the job:
+  `Branch "main" is not allowed to deploy to github-pages due to environment
+  protection rules.` Enabling Pages auto-created the `github-pages`
+  environment with a deployment-branch rule of "default branch only", and
+  the default branch is `claude/dusk-circuit-blender-pipeline-skrptb`.
+- Fix (repo owner, one of; see the follow-up below, only option 2 works):
+  1. Settings → General → Default branch → `main` (done 2026-09-26; not sufficient on its own), or
+  2. Settings → Environments → `github-pages` → Deployment branches → add `main`.
+  Then re-run the workflow (Actions → Deploy to GitHub Pages → Run workflow).
+  Neither setting is reachable from this session: the environment and Pages
+  REST endpoints are blocked by the session's GitHub proxy.
+- `https://icomppower.github.io/mariokarttest/` is still unreachable from
+  this container (egress policy), so the live URL remains unverified here.
+
+- **Follow-up the same day:** the default branch was switched to `main`
+  (repo API now reports `default_branch: main`). Run #4 was dispatched on
+  `main` afterwards: build job green again, `deploy` rejected again with the
+  identical annotation. Conclusion: the `github-pages` environment's
+  deployment-branch rule is a **named** rule for
+  `claude/dusk-circuit-blender-pipeline-skrptb` (the default branch at the
+  moment Pages was enabled), not a dynamic "default branch" rule, so changing
+  the default branch alone does not clear it. The remaining fix is option 2
+  only: Settings → Environments → `github-pages` → Deployment branches and
+  tags → add `main` (or remove the restriction), then re-run the workflow.
+
+- Repository fact worth knowing: the **default branch is
+  `claude/dusk-circuit-blender-pipeline-skrptb`**, not `main` (the repo was
+  empty and this branch was its first push). The Pages workflow triggers on
+  pushes to `main`, so after merging PR #1 consider Settings → General →
+  Default branch → `main`.
 
 ## Not real / caveats
 
@@ -96,4 +176,5 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   editing it does not re-sweep `TRACK_SURFACE`/`TRACK_CENTERLINE` (see TODO).
 - The p95 gate is measured on the reduced fixture described above, not at
   full resolution with shadows.
-- `CLAUDE_CODE_ENVIRONMENT_NAME` was unset (see Preflight).
+- `CLAUDE_CODE_ENVIRONMENT_NAME` was unset (see Preflight), on both sessions.
+- Live GitHub Pages URL: not yet real (site not enabled; see Re-verification).

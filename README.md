@@ -6,7 +6,8 @@ the game code never generates gameplay geometry. Race logic is a headless,
 seeded, deterministic simulation; Three.js is only the render layer.
 
 Play: `npm ci && npm run serve` → http://localhost:4173/ (↑/W throttle, ↓/S brake, ←/→ steer, R restart).
-Deployed by GitHub Actions to GitHub Pages on every push to `main`.
+Deployed by GitHub Actions to GitHub Pages on every push to `main` (enable
+Pages once: Settings → Pages → Source: GitHub Actions).
 
 Everything here is an original design — no franchise lookalikes in karts,
 characters, or theming.
@@ -52,6 +53,14 @@ To regenerate the sources from the script instead (this **overwrites** the
 
 `tools/build_assets.py` needs Blender as a Python module: `pip install bpy==5.0.1`
 (see `requirements.txt`). Node dependencies are in `package.json`.
+
+## Single-file build
+
+`node tools/build_artifact.mjs` writes `dist/dusk-circuit-standalone.html`:
+the same modules concatenated, the `.glb` assets inlined as base64, and
+three.js loaded from jsdelivr via the import map. Hand that one file around
+or host it anywhere static. `--fragment` emits the same page without the
+document skeleton for hosts that wrap pages themselves.
 
 ## Verify
 
