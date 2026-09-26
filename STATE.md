@@ -142,15 +142,25 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   protection rules.` Enabling Pages auto-created the `github-pages`
   environment with a deployment-branch rule of "default branch only", and
   the default branch is `claude/dusk-circuit-blender-pipeline-skrptb`.
-- Fix (repo owner, one of):
-  1. Settings → General → Default branch → `main` (recommended; also makes
-     the `push: [main]` trigger the natural one), or
+- Fix (repo owner, one of; see the follow-up below, only option 2 works):
+  1. Settings → General → Default branch → `main` (done 2026-09-26; not sufficient on its own), or
   2. Settings → Environments → `github-pages` → Deployment branches → add `main`.
   Then re-run the workflow (Actions → Deploy to GitHub Pages → Run workflow).
   Neither setting is reachable from this session: the environment and Pages
   REST endpoints are blocked by the session's GitHub proxy.
 - `https://icomppower.github.io/mariokarttest/` is still unreachable from
   this container (egress policy), so the live URL remains unverified here.
+
+- **Follow-up the same day:** the default branch was switched to `main`
+  (repo API now reports `default_branch: main`). Run #4 was dispatched on
+  `main` afterwards: build job green again, `deploy` rejected again with the
+  identical annotation. Conclusion: the `github-pages` environment's
+  deployment-branch rule is a **named** rule for
+  `claude/dusk-circuit-blender-pipeline-skrptb` (the default branch at the
+  moment Pages was enabled), not a dynamic "default branch" rule, so changing
+  the default branch alone does not clear it. The remaining fix is option 2
+  only: Settings → Environments → `github-pages` → Deployment branches and
+  tags → add `main` (or remove the restriction), then re-run the workflow.
 
 - Repository fact worth knowing: the **default branch is
   `claude/dusk-circuit-blender-pipeline-skrptb`**, not `main` (the repo was
