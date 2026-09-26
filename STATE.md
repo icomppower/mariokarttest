@@ -127,6 +127,31 @@ GL: ANGLE/SwiftShader) against `tools/serve.js`:
   Settings → Pages → Build and deployment → Source: **GitHub Actions**.
   `https://icomppower.github.io` is unreachable from this container
   (egress policy), so the live URL cannot be probed from here either way.
+## Double-check (2026-09-26, fresh container)
+
+- `./verify.sh` re-run after deleting `node_modules/`, `dist/`, `test-results/`
+  and `.tmp/`: **ALL GATES GREEN** at commit `4874062` (same 15 node tests,
+  12 byte-identical `.glb`, both G3 negatives, workflow dry run + negative,
+  Playwright 4 + 1).
+- The repo now reports `has_pages: true` (Pages was enabled in Settings after
+  2026-09-10), but no workflow had run since, so the Pages workflow was
+  dispatched again on `main` (run #3). **The build job passed end to end,
+  including `configure-pages` and `upload-pages-artifact`.** The `deploy`
+  job was rejected before any step ran; GitHub's annotation on the job:
+  `Branch "main" is not allowed to deploy to github-pages due to environment
+  protection rules.` Enabling Pages auto-created the `github-pages`
+  environment with a deployment-branch rule of "default branch only", and
+  the default branch is `claude/dusk-circuit-blender-pipeline-skrptb`.
+- Fix (repo owner, one of):
+  1. Settings → General → Default branch → `main` (recommended; also makes
+     the `push: [main]` trigger the natural one), or
+  2. Settings → Environments → `github-pages` → Deployment branches → add `main`.
+  Then re-run the workflow (Actions → Deploy to GitHub Pages → Run workflow).
+  Neither setting is reachable from this session: the environment and Pages
+  REST endpoints are blocked by the session's GitHub proxy.
+- `https://icomppower.github.io/mariokarttest/` is still unreachable from
+  this container (egress policy), so the live URL remains unverified here.
+
 - Repository fact worth knowing: the **default branch is
   `claude/dusk-circuit-blender-pipeline-skrptb`**, not `main` (the repo was
   empty and this branch was its first push). The Pages workflow triggers on
